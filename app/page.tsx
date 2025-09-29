@@ -7,7 +7,7 @@ import LandingImg from '../assets/main.svg';
 export default function Home() {
   return (
     <main>
-      <header className="max-w-6xl mx-auto px-4 sm:px-8 py-6 ">
+      <header className="max-w-6xl mx-auto px-4 sm:px-8 py-6 mb-16">
         <Image src={Logo} alt="logo" />
       </header>
       <section className="max-w-6xl mx-auto px-4 sm:px-8 h-screen -mt-20 grid lg:grid-cols-[1fr,400px] items-center">
