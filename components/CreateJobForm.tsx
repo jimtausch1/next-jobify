@@ -1,7 +1,11 @@
 'use client';
 
+import createJobAction from '@/actions/createJobAction';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useRouter } from 'next/navigation';
 import { useForm } from 'react-hook-form';
+import { toast } from 'sonner';
 import {
   createAndEditJobSchema,
   CreateAndEditJobType,
@@ -25,11 +29,31 @@ export default function CreateJobForm() {
     },
   });
 
+  const queryClient = useQueryClient();
+  const router = useRouter();
+
+  const { mutate, isPending } = useMutation({
+    mutationFn: (values: CreateAndEditJobType) => createJobAction(values),
+    onSuccess: (data) => {
+      if (!data) {
+        toast.error('there was an error');
+        return;
+      }
+      toast.success('job created');
+      queryClient.invalidateQueries({ queryKey: ['jobs'] });
+      queryClient.invalidateQueries({ queryKey: ['stats'] });
+      queryClient.invalidateQueries({ queryKey: ['charts'] });
+
+      router.push('/jobs');
+      // form.reset();
+    },
+  });
+
   // 2. Define a submit handler.
   function onSubmit(values: CreateAndEditJobType) {
     // Do something with the form values.
     // ✅ This will be type-safe and validated.
-    console.log(values);
+    mutate(values);
   }
 
   return (
@@ -59,8 +83,8 @@ export default function CreateJobForm() {
             items={Object.values(JobMode)}
           />
 
-          <Button type="submit" className="self-end capitalize">
-            create job
+          <Button type="submit" className="self-end capitalize" disabled={isPending}>
+            {isPending ? 'loading...' : 'create job'}
           </Button>
         </div>
       </form>
