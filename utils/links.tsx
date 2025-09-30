@@ -1,3 +1,4 @@
+import { NavLink } from '@/types/next-jobify';
 import { AppWindow, AreaChart, Layers } from 'lucide-react';
 
 const links: NavLink[] = [
