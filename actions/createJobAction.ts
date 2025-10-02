@@ -2,16 +2,7 @@
 
 import { createAndEditJobSchema, CreateAndEditJobType, JobType } from '@/types/next-jobify';
 import prisma from '@/utils/db';
-import { auth } from '@clerk/nextjs/server';
-import { redirect } from 'next/navigation';
-
-async function authenticateAndRedirect(): Promise<string> {
-  const { userId } = await auth();
-  if (!userId) {
-    redirect('/');
-  }
-  return userId;
-}
+import { authenticateAndRedirect } from './authenticateAndRedirect';
 
 export default async function createJobAction(values: CreateAndEditJobType) {
   // await new Promise((resolve) => setTimeout(resolve, 3000));

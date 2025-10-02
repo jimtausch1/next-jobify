@@ -1,0 +1,57 @@
+'use server';
+
+import { Prisma } from '@/lib/generated/prisma';
+import { GetAllJobsActionTypes, GetAllJobsResponse, JobType } from '@/types/next-jobify';
+import prisma from '@/utils/db';
+import { authenticateAndRedirect } from './authenticateAndRedirect';
+
+export default async function getAllJobsAction({
+  search,
+  jobStatus,
+}: // page = 1,
+// limit = 10,
+GetAllJobsActionTypes): Promise<GetAllJobsResponse> {
+  const userId = await authenticateAndRedirect();
+
+  try {
+    let whereClause: Prisma.JobWhereInput = {
+      clerkId: userId,
+    };
+    if (search) {
+      whereClause = {
+        ...whereClause,
+        OR: [
+          {
+            position: {
+              contains: search,
+            },
+          },
+          {
+            company: {
+              contains: search,
+            },
+          },
+        ],
+      };
+    }
+
+    if (jobStatus && jobStatus !== 'all') {
+      whereClause = {
+        ...whereClause,
+        status: jobStatus,
+      };
+    }
+
+    const jobs: JobType[] = await prisma.job.findMany({
+      where: whereClause,
+      orderBy: {
+        createdAt: 'desc',
+      },
+    });
+
+    return { jobs, count: 0, page: 1, totalPages: 0 };
+  } catch (error) {
+    console.error(error);
+    return { jobs: [], count: 0, page: 1, totalPages: 0 };
+  }
+}
