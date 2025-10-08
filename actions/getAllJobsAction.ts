@@ -8,15 +8,16 @@ import { authenticateAndRedirect } from './authenticateAndRedirect';
 export default async function getAllJobsAction({
   search,
   jobStatus,
-}: // page = 1,
-// limit = 10,
-GetAllJobsActionTypes): Promise<GetAllJobsResponse> {
+  page = 1,
+  limit = 10,
+}: GetAllJobsActionTypes): Promise<GetAllJobsResponse> {
   const userId = await authenticateAndRedirect();
 
   try {
     let whereClause: Prisma.JobWhereInput = {
       clerkId: userId,
     };
+
     if (search) {
       whereClause = {
         ...whereClause,
@@ -42,14 +43,23 @@ GetAllJobsActionTypes): Promise<GetAllJobsResponse> {
       };
     }
 
+    const skip = (page - 1) * limit;
+
     const jobs: JobType[] = await prisma.job.findMany({
       where: whereClause,
+      skip,
+      take: limit,
       orderBy: {
         createdAt: 'desc',
       },
     });
 
-    return { jobs, count: 0, page: 1, totalPages: 0 };
+    const count: number = await prisma.job.count({
+      where: whereClause,
+    });
+
+    const totalPages = Math.ceil(count / limit);
+    return { jobs, count, page, totalPages };
   } catch (error) {
     console.error(error);
     return { jobs: [], count: 0, page: 1, totalPages: 0 };
